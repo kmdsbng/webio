@@ -40,9 +40,41 @@ class WebIO
     end
   end
 
-  def puts(str)
-    @output << str
-    @output << "\n"
+  def read(*argv)
+    gets
+  end
+
+  def each_line(*argv)
+    while(l=self.gets)
+      yield(l)
+    end
+  end
+
+  alias_method :lines, :each_line
+
+  def print(*argv)
+    argv.each {|o|
+      self.write(o.to_s)
+    }
+  end
+
+  def puts(*argv)
+    argv.each {|o|
+
+      if o.kind_of?(Array)
+        o.each {|col|
+          self.puts(col)
+        }
+      else
+        self.print(o)
+        self.print("\n")
+      end
+    }
+
+  end
+
+  def write(str)
+    @output << str.to_s
   end
 end
 
