@@ -9,10 +9,7 @@ describe WebIO do
       @input_line = nil
       @webio_thread = Thread.new do
         @webio = WebIO.new('0.0.0.0:53333')
-        puts '---1---'
-        puts '---1.1---'
         while l=@webio.gets
-          puts '---2---'
           @input_line = l
         end
       end
