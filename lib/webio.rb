@@ -6,7 +6,7 @@ class WebIO
     host, port = connection_spec.split(':')
     @mutex = Mutex.new
     Thread.new do
-      srv = WEBrick::HTTPServer.new({:BindAddress => host, :Port => port})
+      @srv = srv = WEBrick::HTTPServer.new({:BindAddress => host, :Port => port})
       srv.mount_proc('/') {|req, res|
         @mutex.synchronize {
           res.content_type = 'text/plain'
@@ -27,7 +27,11 @@ class WebIO
   end
 
   def gets
-    @resume_thread.run rescue nil
+    begin
+      @resume_thread.run if @resume_thread
+    rescue Exception => x
+      STDERR.puts "WebIO.gets raised exception: #{x.message}"
+    end
     @monitor_thread = Thread.new do
       Thread.stop
     end
@@ -75,6 +79,12 @@ class WebIO
 
   def write(str)
     @output << str.to_s
+  end
+
+  def close
+    @srv.shutdown
+    @monitor_thread.kill rescue nil
+    @resume_thread.kill rescue nil
   end
 end
 
