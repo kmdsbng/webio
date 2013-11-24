@@ -12,13 +12,17 @@ describe WebIO do
     @responce
   end
 
-  def start_webio_thread
+  def start_webio_thread(option=nil)
     @responce = nil
     @webio_thread = Thread.new do
-      @webio = WebIO.new('0.0.0.0:53333')
+      if option
+        @webio = WebIO.new('0.0.0.0:53333', option)
+      else
+        @webio = WebIO.new('0.0.0.0:53333')
+      end
       yield @webio
     end
-    sleep 0.5 # getsを呼ぶまで待つ
+    #sleep 0.5 # getsを呼ぶまで待つ
   end
 
   after(:each) do
@@ -31,6 +35,7 @@ describe WebIO do
       start_webio_thread do |webio|
         while l=webio.gets
           @responce = 'koge' + l
+
         end
       end
     end
@@ -39,7 +44,6 @@ describe WebIO do
       responce_for('hoge').should eq 'kogehoge'
     end
   end
-
 
   context :lines do
     before(:each) do
@@ -68,5 +72,25 @@ describe WebIO do
       responce_for('hoge').should eq 'kogehoge'
     end
   end
+
+  context :shell do
+    before(:each) do
+      start_webio_thread(:shell => true) do |webio|
+        while l=webio.gets
+          @responce = 'shell' + l
+        end
+      end
+    end
+
+    it 'receive web url parameter' do
+      responce_for('hoge').should eq 'shellhoge'
+    end
+
+    it 'receive web url parameter under /command/ path' do
+      responce_for('/command/hoge').should eq 'shellhoge'
+    end
+  end
+
+
 end
 
